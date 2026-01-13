@@ -49,7 +49,7 @@ pipeline
   }
   post
   {
-    sucecss{
+    success{
       echo 'Ppiline completed sucessfully'
     }
     failure
