@@ -1,60 +1,54 @@
-pipeline
-{
-  agent any
-  stages{
-    stage('checkout')
-    {
-      steps
-      {
-        echo 'fetching source code'
-        checkout scm
-      }
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Fetching source code'
+                checkout scm
+            }
+        }
+
+        stage('Code Quality Check') {
+            steps {
+                echo 'Checking code quality'
+                bat '''
+                findstr GOOD quality.txt > nul
+                if errorlevel 1 (
+                    echo Code Quality Failed
+                    exit /b 1
+                ) else (
+                    echo Code Quality Passed
+                )
+                '''
+            }
+        }
+
+        stage('Generate Report') {
+            steps {
+                echo 'Generating build report'
+                bat '''
+                if not exist reports mkdir reports
+                echo Build Successful > reports\\build-report.txt
+                '''
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                echo 'Archiving Reports'
+                archiveArtifacts artifacts: 'reports/*.txt', fingerprint: true
+            }
+        }
     }
-    stage('Code quality check!')
-    {
-      steps
-      {
-        echo 'checking code quality'
-        bat '''
-        findstr GOOD quality.txt > nul
-        if errorlevel 1 (
-        echo Code Quality Failed
-        exit 1
-        )
-        else
-        (
-         echo Code Quality Passed
-        )'''
-        
-      }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully'
+        }
+        failure {
+            echo 'Pipeline failed - code blocked'
+        }
     }
-    stage('Generate Report')
-    {
-      steps
-      {
-        echo 'Generating build Report'
-        bat '''
-        mkdir reports
-        echo Build Successful>reports\\build-report.txt
-        '''
-      }
-    }
-    stage('Archive Artifacts')
-    {
-      steps{
-        echo 'Archiving reports'
-        archiveArtifacts artifacts:'reports/*.txt',fingerprint:true
-      }
-    }
-  }
-  post
-  {
-    success{
-      echo 'Ppiline completed sucessfully'
-    }
-    failure
-    {
-      echo 'pipline failed code blocked'
-    }
-  }
 }
